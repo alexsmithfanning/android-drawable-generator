@@ -1,0 +1,20 @@
+#!/bin/bash
+while [ "$1" ]
+do
+    echo "$1"
+    shift
+done
+
+function options {
+    if [ "$@" == "--optimize" ] || [ "$@" == "-o" ]; then
+        OPTIMIZE="enabled"
+    fi
+    if [ "$@" == "--help" ]; then
+        echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+        echo -e "Usage: ${SCRIPTNAME} [OPTION]... (INPUT FILE) [OUTPUT FOLDER]"
+        printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+        echo "Options:"
+        echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+        exit
+    fi
+}
