@@ -1,0 +1,40 @@
+#!/bin/bash
+
+INPUT="$1"
+DESTINATION="$2"
+
+# Check and see if the needed programs are installed and working.
+if [ ! -e "/usr/bin/inkscape" ]; then
+	echo -e "Inkscape is not installed. Please install Inkscape before continuing."
+    exit
+fi
+
+# Make sure the user provides an input file.
+if [ "$1" == "" ]; then
+    echo "You must provide a file name."
+    exit
+fi
+
+# Output the help menu if the user uses the help switch.
+if [ "$1" == "--help" ]; then
+    echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+    echo -e "Usage: ${0##*/} [OPTION]... (INPUT FILE) (OUTPUT FILE)"
+    printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+    echo "Options:"
+    echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+    exit
+fi
+
+# Detect if the optimize option was passed to the terminal.
+if [ "$@" == "--optimize" ] || [ "$@" == "-o" ]; then
+    echo "The optimize option was passed."
+    exit
+fi
+
+#printf "Preparing" "$1"
+#inkscape -z -e ./drawable-hdpi/output-hdpi.png -w 72 -h 72 $1.svg
+#inkscape -z -e ./drawable-mdpi/output-mdpi.png -w 48 -h 48 $1.svg
+#inkscape -z -e ./drawable-xhdpi/output-xhdpi.png -w 96 -h 96 $1.svg
+#inkscape -z -e ./drawable-xxhdpi/output-xxhdpi.png -w 144 -h 144 $1.svg
+#inkscape -z -e ./drawable-xxxhdpi/output-xxxhdpi.png -w 192 -h 192 $1.svg
+#echo "Done."
