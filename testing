@@ -1,20 +1,73 @@
 #!/bin/bash
-while [ "$1" ]
-do
-    echo "$1"
-    shift
-done
+# while [ "$1" ]
+# do
+#     echo "$1"
+#     shift
+# done
+#
+# function options {
+#     if [ "$@" == "--optimize" ] || [ "$@" == "-o" ]; then
+#         OPTIMIZE="enabled"
+#     fi
+#     if [ "$@" == "--help" ]; then
+#         echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+#         echo -e "Usage: ${SCRIPTNAME} [OPTION]... (INPUT FILE) [OUTPUT FOLDER]"
+#         printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+#         echo "Options:"
+#         echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+#         exit
+#     fi
+# }
+# Init
+#FILE="/tmp/out.$$"
+#GREP="/bin/grep"
+#....
+# Make sure only root can run our script
+# if [[ $EUID -ne 0 ]]; then
+#    echo "This script must be run as root" 1>&2
+#    exit 1
+# fi
+# ...
 
-function options {
-    if [ "$@" == "--optimize" ] || [ "$@" == "-o" ]; then
-        OPTIMIZE="enabled"
-    fi
-    if [ "$@" == "--help" ]; then
-        echo -e "Generates drawable resources for Android applications based on a scalable vector input."
-        echo -e "Usage: ${SCRIPTNAME} [OPTION]... (INPUT FILE) [OUTPUT FOLDER]"
-        printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
-        echo "Options:"
-        echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
-        exit
-    fi
-}
+# if [[ ! $EUID -ne 0 ]]; then
+#    echo "Do not run this script as root. Running it as root could damage the security and stability of your system." 1>&2
+#    exit 1
+# fi
+
+# read -p "Is this a good question (y/n)? " answer
+# case ${answer:0:1} in
+#     y|Y )
+#         echo Yes
+#     ;;
+#     * )
+#         echo No
+#     ;;
+# esac
+
+# if [ -e "/usr/bin/optipng" ]; then
+#         echo -e "OptiPNG is not installed. It is required for optimization to work."
+#         read -p "Would you like to continue anyway [Y/N]? " answer
+#         case ${answer:0:1} in
+#             y|Y|Yes|yes )
+#                 echo -e "Continuing with optimization disabled."
+#             ;;
+#             * )
+#                 echo -e "This program will now exit."
+#                 exit 1
+#             ;;
+#         esac
+#     fi
+
+# Output the help menu if the user uses the help switch.
+if [ "$@" == "--help" ] || [ "$@" == "-h" ]; then
+    echo -e "Android Drawable Autogenerator ${VERSION}, an Android image resource generation automation program."
+    # echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+    echo -e "Usage: ${SCRIPTNAME} (INPUT FILE) [OPTION]..."
+    printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+    echo "Options:"
+    echo -e "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+    echo -e "  -t,  --type                       type of resources to generate (can be launcher, notification, or toolbar)"
+	echo -e "  -h,  --help                       display this help text"
+	echo -e "\nMail bug reports and suggestions to <alexsmithfanning@gmail.com>"
+    exit
+fi

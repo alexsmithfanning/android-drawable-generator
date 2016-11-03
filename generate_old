@@ -1,0 +1,81 @@
+#!/bin/bash
+
+INPUT_FILE="$2"
+SCRIPTNAME="${0##*/}"
+
+function generate_resources {
+    # This check currently doesn't do anything.
+    # printf "Analyzing the environment... " && sleep 5 && printf "\E[1;32mOK" && tput sgr0 && printf ".\n\n"
+
+    mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-mdpi/
+    mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-hdpi/
+    mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-xhdpi/
+    mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-xxhdpi/
+    mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-xxxhdpi/
+    inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-mdpi/"${INPUT_BASENAME}.png" -w 48 -h 48 "${INPUT_FILE}" > /dev/null
+    inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-hdpi/"${INPUT_BASENAME}.png" -w 72 -h 72 "${INPUT_FILE}" > /dev/null
+    inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xhdpi/"${INPUT_BASENAME}.png" -w 96 -h 96 "${INPUT_FILE}" > /dev/null
+    inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xxhdpi/"${INPUT_BASENAME}.png" -w 144 -h 144 "${INPUT_FILE}" > /dev/null
+    inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xxxhdpi/"${INPUT_BASENAME}.png" -w 192 -h 192 "${INPUT_FILE}" > /dev/null
+    if [ ${OPTIMIZATION} == "ENABLED" ]; then
+        echo "Optimizing output. This might take a while..."
+        optipng -o7 drawable-*/*.png > /dev/null
+        echo "Process complete!"
+    else
+        echo "Process complete!"
+        exit
+    fi
+}
+
+# Ensure the user has put in enough arguments.
+if [ $# -lt "1" ]; then
+    printf '\E[1;31mERROR:' && tput sgr0 && printf " You must provide at least one argument.\n\n" && printf "To print usage information, type " && printf "\E[1;37m" && printf "%s" "${SCRIPTNAME}" && printf " --help" && tput sgr0 && printf " or refer to the online documentation.\n"
+    exit
+fi
+
+# Make sure we find the name of the file and remove the extension.
+INPUT_BASENAME=$(basename "${INPUT_FILE}" | sed s/\.[^.]*$//)
+DESTINATION_DIRECTORY="${INPUT_BASENAME}"-resources
+
+# Check and see if the needed programs are installed and working.
+if [ ! -e "/usr/bin/inkscape" ]; then
+	echo -e "Inkscape is not installed. Please install Inkscape before continuing."
+    exit
+fi
+
+# Output the help menu if the user uses the help switch.
+if [ "$1" == "--help" ]; then
+    echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+    echo -e "Usage: ${SCRIPTNAME} (INPUT FILE) [OPTION]..."
+    printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+    echo "Options:"
+    echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+    exit
+fi
+
+# Make sure the user provides a valid input file.
+if [ ! -e "${INPUT_FILE}" ]; then
+    printf "\E[1;31mERROR: " && tput sgr0 && printf "Input file not found. Make sure you have read & write access to the file.\n\n"
+    exit
+fi
+
+# Detect if the optimize option was passed to the terminal.
+if [ "$1" == "--optimize" ]; then
+    echo "Optimization is enabled!"
+    OPTIMIZATION="enabled"
+    # optipng -o7 drawable-*/*.png
+elif [ "$1" == "-o" ]; then
+    echo "Optimization is enabled!"
+    OPTIMIZATION="enabled"
+fi
+
+generate_resources
+
+#printf "Preparing "
+#printf "Preparing" "$1"
+#inkscape -z -e ./drawable-hdpi/output-hdpi.png -w 72 -h 72 $1.svg
+#inkscape -z -e ./drawable-mdpi/output-mdpi.png -w 48 -h 48 $1.svg
+#inkscape -z -e ./drawable-xhdpi/output-xhdpi.png -w 96 -h 96 $1.svg
+#inkscape -z -e ./drawable-xxhdpi/output-xxhdpi.png -w 144 -h 144 $1.svg
+#inkscape -z -e ./drawable-xxxhdpi/output-xxxhdpi.png -w 192 -h 192 $1.svg
+#echo "Done."
