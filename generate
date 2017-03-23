@@ -2,6 +2,66 @@
 
 INPUT_FILE="$2"
 SCRIPTNAME="${0##*/}"
+VERSION="0.2.4 ALPHA"
+
+# Ensure the user has put in enough arguments.
+if [ $# -lt "1" ]; then
+    printf '\E[1;31mERROR:' && tput sgr0 && printf " You must provide at least one argument.\n\n" && printf "To print usage information, type " && printf "\E[1;37m" && printf "%s" "${SCRIPTNAME}" && printf " --help" && tput sgr0 && printf " or refer to the online documentation.\n"
+    exit 1
+fi
+
+function interactive_mode {
+	echo -e "Running in interactive mode."
+	read -p "What is the name of the vector you would like to generate resources for? " INPUT_FILE
+	read -p "Would you like to optimize the output, making it smaller [Y/N]?" OPTIMIZATION
+	case ${answer:0:1} in
+		y|Y|Yes|yes )
+			OPTIMIZATION="enabled"
+		;;
+		* )
+			OPTIMIZATION="disabled"
+			echo -e "Output will not be optimized."
+		;;
+	esac
+	read -p "What type of resources are you generating [LAUNCHER/NOTIFICATION/TOOLBAR]?" OUTPUT_TYPE
+}
+
+function check_environment {
+	# Make sure we're running in a somewhat sane situation.
+    if [ ! ${BASH} == "/bin/bash" ]; then
+        echo -e "${SCRIPTNAME}: a Bash environment variable is incorrect. Exiting."
+        exit 1
+    fi
+}
+
+function verify_installed_programs {
+    # Verify that all the needed programs required to run this script are installed.
+    if [ ! -e "/usr/bin/inkscape" ]; then
+	    echo -e "Inkscape is not installed. Please install Inkscape and try again."
+    fi
+    if [ ! -e "/usr/bin/optipng" ]; then
+        echo -e "OptiPNG is not installed. It is required for optimization to work."
+        # Prompts the user and asks them whether or not they'd like to continue.
+        read -p "Would you like to continue anyway [Y/N]? " answer
+        case ${answer:0:1} in
+            y|Y|Yes|yes )
+                echo -e "Continuing with optimization disabled."
+            ;;
+            * )
+                echo -e "This program will now exit."
+                exit 1
+            ;;
+        esac
+    fi
+}
+
+function check_root {
+	# Ensure the user IS NOT running the script as root.
+	if [[ ! $EUID -ne 0 ]]; then
+	   echo "Running this script as root could damage the stability and security of your system." 1>&2
+	   exit 1
+	fi
+}
 
 function generate_resources {
     # This check currently doesn't do anything.
@@ -21,21 +81,15 @@ function generate_resources {
     inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xhdpi/"${INPUT_BASENAME}.png" -w 96 -h 96 "${INPUT_FILE}" > /dev/null
     inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xxhdpi/"${INPUT_BASENAME}.png" -w 144 -h 144 "${INPUT_FILE}" > /dev/null
     inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xxxhdpi/"${INPUT_BASENAME}.png" -w 192 -h 192 "${INPUT_FILE}" > /dev/null
-    if [ ${OPTIMIZATION} == "ENABLED" ]; then
+    if [ ${OPTIMIZATION} == "enabled" ]; then
         echo "Optimizing output. This might take a while..."
-        optipng -o7 drawable-*/*.png > /dev/null
+        optipng -o7 ./"${DESTINATION_DIRECTORY}"/drawable-*/*.png > /dev/null
         echo "Process complete!"
     else
         echo "Process complete!"
         exit
     fi
 }
-
-# Ensure the user has put in enough arguments.
-if [ $# -lt "1" ]; then
-    printf '\E[1;31mERROR:' && tput sgr0 && printf " You must provide at least one argument.\n\n" && printf "To print usage information, type " && printf "\E[1;37m" && printf "%s" "${SCRIPTNAME}" && printf " --help" && tput sgr0 && printf " or refer to the online documentation.\n"
-    exit
-fi
 
 # Make sure we find the name of the file and remove the extension.
 INPUT_BASENAME=$(basename "${INPUT_FILE}" | sed s/\.[^.]*$//)
@@ -48,12 +102,16 @@ if [ ! -e "/usr/bin/inkscape" ]; then
 fi
 
 # Output the help menu if the user uses the help switch.
-if [ "$1" == "--help" ]; then
-    echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+if [ "$@" == "--help" ] || [ "$@" == "-h" ]; then
+    echo -e "Android Drawable Autogenerator ${VERSION}, an Android image resource generation automation program."
+    # echo -e "Generates drawable resources for Android applications based on a scalable vector input."
     echo -e "Usage: ${SCRIPTNAME} (INPUT FILE) [OPTION]..."
     printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
     echo "Options:"
-    echo "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+    echo -e "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+    echo -e "  -t,  --type                       type of resources to generate (can be launcher, notification, or toolbar)"
+	echo -e "  -h,  --help                       display this help text"
+	echo -e "\nMail bug reports and suggestions to <alexsmithfanning@gmail.com>"
     exit
 fi
 
