@@ -6,6 +6,10 @@ SCRIPTNAME="${0##*/}"
 function generate_resources {
     # This check currently doesn't do anything.
     # printf "Analyzing the environment... " && sleep 5 && printf "\E[1;32mOK" && tput sgr0 && printf ".\n\n"
+    printf "Analyzing the environment..."
+    if ! type optipng > /dev/null; then
+      printf "OptiPNG is not installed. Please install it before you continue."
+    fi
 
     mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-mdpi/
     mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-hdpi/
