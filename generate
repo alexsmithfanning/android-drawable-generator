@@ -1,18 +1,29 @@
 #!/bin/bash
 
-INPUT_FILE="$2"
+INPUT_FILE="$1"
 SCRIPTNAME="${0##*/}"
-VERSION="0.2.4 ALPHA"
+VERSION="0.3.0 ALPHA"
 
-function check_root {
-	# Ensure the user IS NOT running the script as root.
-	if [[ ! $EUID -ne 0 ]]; then
-	   echo "${SCRIPTNAME}: Running this script as root could damage the stability and security of your system." 1>&2
-	   exit 1
-	fi
+# Output the help menu if the user uses the help switch.
+function print_usage_information {
+	echo -e "Android Drawable Autogenerator ${VERSION}, an Android image resource generation automation program."
+	# echo -e "Generates drawable resources for Android applications based on a scalable vector input."
+	echo -e "Usage: ${SCRIPTNAME} (INPUT FILE) [OPTION]..."
+	printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
+	echo "Options:"
+	echo -e "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
+	echo -e "  -s,  --screen                     type of screen the asset is being generated for"
+	echo -e "  -t,  --type                       type of resources to generate (can be launcher, notification, or toolbar)"
+	echo -e "  -h,  --help                       display this help text"
+	echo -e "\nMail bug reports and suggestions to <alexsmithfanning@gmail.com>"
+	exit
 }
 
-check_root
+# Ensure the user IS NOT running the script as root.
+if [[ ! $EUID -ne 0 ]]; then
+	echo "${SCRIPTNAME}: Running this script as root could damage the stability and security of your system." 1>&2
+	exit 1
+fi
 
 # Check and see if the needed programs are installed and working.
 if [ ! -e "/usr/bin/inkscape" ]; then
@@ -25,6 +36,32 @@ if [ $# -lt "1" ]; then
     printf '\E[1;31mERROR:' && tput sgr0 && printf " You must provide at least one argument.\n\n" && printf "To print usage information, type " && printf "\E[1;37m" && printf "%s" "${SCRIPTNAME}" && printf " --help" && tput sgr0 && printf " or refer to the online documentation.\n"
     exit 1
 fi
+
+while (( "$#" )); do
+	if [ "$*" == "--help" ]; then
+	    print_usage_information
+	elif [ "$*" == "-h" ]; then
+	    print_usage_information
+	fi
+	if [ "$1" == "--optimize" ]; then
+	    echo "Optimization is enabled!"
+	    OPTIMIZATION="enabled"
+	elif [ "$1" == "-o" ]; then
+	    echo "Optimization is enabled!"
+	    OPTIMIZATION="enabled"
+	fi
+	if [ "$1" == "--type" ]; then
+	    echo "The type option has been passed!"
+	elif [ "$1" == "-t" ]; then
+	    echo "The type option has been passed!"
+	fi
+  if [ "$1" == "--screen" ]; then
+	    echo "The screen option has been passed!"
+	elif [ "$1" == "-s" ]; then
+	    echo "The screen option has been passed!"
+	fi
+	shift
+done
 
 function interactive_mode {
 	echo -e "Running in interactive mode."
@@ -74,10 +111,10 @@ function verify_installed_programs {
 function generate_resources {
     # This check currently doesn't do anything.
     # printf "Analyzing the environment... " && sleep 5 && printf "\E[1;32mOK" && tput sgr0 && printf ".\n\n"
-    printf "Analyzing the environment..."
-    if ! type optipng > /dev/null; then
-      printf "OptiPNG is not installed. Please install it before you continue."
-    fi
+    #printf "Analyzing the environment..."
+    #if ! type optipng > /dev/null; then
+    #  printf "OptiPNG is not installed. Please install it before you continue."
+    #fi
 
     mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-mdpi/
     mkdir -p ./"${DESTINATION_DIRECTORY}"/drawable-hdpi/
@@ -91,7 +128,7 @@ function generate_resources {
     inkscape -z -e ./"${DESTINATION_DIRECTORY}"/drawable-xxxhdpi/"${INPUT_BASENAME}.png" -w 192 -h 192 "${INPUT_FILE}" > /dev/null
     if [ ${OPTIMIZATION} == "enabled" ]; then
         echo "Optimizing output. This might take a while..."
-        optipng -o7 ./"${DESTINATION_DIRECTORY}"/drawable-*/*.png > /dev/null
+        optipng -o7 ./"${DESTINATION_DIRECTORY}"/drawable-*/*.png > /dev/null 2>&1
         echo "Process complete!"
     else
         echo "Process complete!"
@@ -103,20 +140,6 @@ function generate_resources {
 INPUT_BASENAME=$(basename "${INPUT_FILE}" | sed s/\.[^.]*$//)
 DESTINATION_DIRECTORY="${INPUT_BASENAME}"-resources
 
-# Output the help menu if the user uses the help switch.
-if [ "$@" == "--help" ] || [ "$@" == "-h" ]; then
-    echo -e "Android Drawable Autogenerator ${VERSION}, an Android image resource generation automation program."
-    # echo -e "Generates drawable resources for Android applications based on a scalable vector input."
-    echo -e "Usage: ${SCRIPTNAME} (INPUT FILE) [OPTION]..."
-    printf "\nMandatory arguments to long options are mandatory for short options too.\n\n"
-    echo "Options:"
-    echo -e "  -o,  --optimize                   make the resulting output images smaller at the cost of processing time"
-    echo -e "  -t,  --type                       type of resources to generate (can be launcher, notification, or toolbar)"
-	echo -e "  -h,  --help                       display this help text"
-	echo -e "\nMail bug reports and suggestions to <alexsmithfanning@gmail.com>"
-    exit
-fi
-
 # Make sure the user provides a valid input file.
 if [ ! -e "${INPUT_FILE}" ]; then
     printf "\E[1;31mERROR: " && tput sgr0 && printf "Input file not found. Make sure you have read & write access to the file.\n\n"
@@ -124,14 +147,16 @@ if [ ! -e "${INPUT_FILE}" ]; then
 fi
 
 # Detect if the optimize option was passed to the terminal.
-if [ "$1" == "--optimize" ]; then
+function optimize_check {
+if [ "$@" == "--optimize" ]; then
     echo "Optimization is enabled!"
     OPTIMIZATION="enabled"
     # optipng -o7 drawable-*/*.png
-elif [ "$1" == "-o" ]; then
+elif [ "$@" == "-o" ]; then
     echo "Optimization is enabled!"
     OPTIMIZATION="enabled"
 fi
+}
 
 generate_resources
 
